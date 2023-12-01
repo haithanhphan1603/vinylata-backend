@@ -1,9 +1,9 @@
-import { Category } from "../models/Category";
+import { CategoryModel } from "../models/Category";
 import { NextFunction, Request, Response } from "express";
 import { handleAsync } from "../utils/handleAsync";
 
 const getCategories = handleAsync(async (req: Request, res: Response) => {
-  const categories = await Category.find();
+  const categories = await CategoryModel.find();
   res.status(200).json({
     status: "Success",
     data: {
@@ -13,7 +13,7 @@ const getCategories = handleAsync(async (req: Request, res: Response) => {
 });
 
 const createCategory = handleAsync(async (req: Request, res: Response) => {
-  const category = await Category.create(req.body);
+  const category = await CategoryModel.create(req.body);
   res.status(201).json({
     status: "Success",
     data: {
@@ -23,7 +23,7 @@ const createCategory = handleAsync(async (req: Request, res: Response) => {
 });
 
 const getCategoryById = handleAsync(async (req: Request, res: Response) => {
-  const category = await Category.findById(req.params.id);
+  const category = await CategoryModel.findById(req.params.id);
   res.status(200).json({
     status: "Success",
     data: {
@@ -34,7 +34,10 @@ const getCategoryById = handleAsync(async (req: Request, res: Response) => {
 
 const updateCategoryById = handleAsync(
   async (req: Request, res: Response, next: NextFunction) => {
-    const category = await Category.findByIdAndUpdate(req.params.id, req.body);
+    const category = await CategoryModel.findByIdAndUpdate(
+      req.params.id,
+      req.body
+    );
     if (!category) {
       return next(new Error("No document found with that ID"));
     }
@@ -48,7 +51,7 @@ const updateCategoryById = handleAsync(
 );
 
 const deleteCategoryById = handleAsync(async (req: Request, res: Response) => {
-  await Category.findByIdAndDelete(req.params.id);
+  await CategoryModel.findByIdAndDelete(req.params.id);
   res.status(204).json({
     status: "Success",
     data: null,
