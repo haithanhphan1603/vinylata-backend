@@ -1,6 +1,6 @@
 import mongoose, { Schema } from "mongoose";
 
-enum UrlType {
+export enum UrlType {
   IMAGE = "image",
   VIDEO = "video",
 }
