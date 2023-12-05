@@ -76,6 +76,23 @@ const addToCart = handleAsync(async (req: Request, res: Response) => {
   }
 });
 
+const updateCart = handleAsync(async (req: Request, res: Response) => {
+  const { productId, quantity } = req.body;
+  const cart = await CartModel.findOne(
+    { user: req.user._id, "items.product": productId },
+    {
+      $set: { "items.$.quantity": quantity },
+    },
+    { new: true }
+  );
+  res.status(200).json({
+    message: "Success",
+    data: {
+      data: cart,
+    },
+  });
+});
+
 const removeCart = handleAsync(async (req: Request, res: Response) => {
   const { productId } = req.body;
   let cart = await CartModel.findOneAndUpdate(
