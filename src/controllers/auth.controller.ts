@@ -5,6 +5,7 @@ import { RoleModel } from "../models/Role";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import mongoose from "mongoose";
 import { RoleCode } from "../models/Role";
+import { ProtectedRequest } from "../app-request";
 
 const createToken = function (id: mongoose.Types.ObjectId) {
   return jwt.sign({ id }, process.env.JWT_SECRET as string, {
@@ -33,7 +34,7 @@ const sendToken = function (user: User, statusCode: number, res: Response) {
 };
 
 const protect = handleAsync(
-  async (req: Request, res: Response, next: NextFunction) => {
+  async (req: ProtectedRequest, res: Response, next: NextFunction) => {
     let token;
     if (
       req.headers.authorization &&
@@ -48,15 +49,21 @@ const protect = handleAsync(
         status: "Failed",
         message: "You are not logged in",
       });
+    } else {
+      const decoded = jwt.verify(
+        token,
+        process.env.JWT_SECRET as string
+      ) as JwtPayload;
+      const user = await UserModel.findById(decoded.id);
+      if (!user) {
+        res.status(401).json({
+          status: "Failed",
+          message: "User not found",
+        });
+      }
+      req.user = user;
+      next();
     }
-    const decoded = jwt.verify(
-      token,
-      process.env.JWT_SECRET as string
-    ) as JwtPayload;
-    const user = await UserModel.findById(decoded.id);
-    req.user = user;
-    req.locals.user = user;
-    next();
   }
 );
 

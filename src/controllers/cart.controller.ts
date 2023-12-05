@@ -2,6 +2,7 @@ import { handleAsync } from "../utils/handleAsync";
 import { Request, Response } from "express";
 import { CartModel } from "../models/Cart";
 import { ObjectId } from "mongodb";
+import { ProtectedRequest } from "../app-request";
 
 const getAllCart = handleAsync(async (req: Request, res: Response) => {
   const cart = await CartModel.find();
@@ -31,25 +32,27 @@ const getCartById = handleAsync(async (req: Request, res: Response) => {
   });
 });
 
-const getCartByUSerId = handleAsync(async (req: Request, res: Response) => {
-  const cart = await CartModel.findOne({ user: req.user._id });
-  if (!cart) {
-    res.status(404).json({
-      message: "fail",
+const getCartByUSerId = handleAsync(
+  async (req: ProtectedRequest, res: Response) => {
+    const cart = await CartModel.findOne({ user: req.user._id });
+    if (!cart) {
+      res.status(404).json({
+        message: "fail",
+        data: {
+          cart: "cart not found",
+        },
+      });
+    }
+    res.status(200).json({
+      message: "success",
       data: {
-        cart: "cart not found",
+        data: cart,
       },
     });
   }
-  res.status(200).json({
-    message: "success",
-    data: {
-      data: cart,
-    },
-  });
-});
+);
 
-const addToCart = handleAsync(async (req: Request, res: Response) => {
+const addToCart = handleAsync(async (req: ProtectedRequest, res: Response) => {
   let cart = await CartModel.findOne({ user: req.user._id });
   const { productId, quantity } = req.body;
   if (cart) {
@@ -76,7 +79,7 @@ const addToCart = handleAsync(async (req: Request, res: Response) => {
   }
 });
 
-const updateCart = handleAsync(async (req: Request, res: Response) => {
+const updateCart = handleAsync(async (req: ProtectedRequest, res: Response) => {
   const { productId, quantity } = req.body;
   const cart = await CartModel.findOne(
     { user: req.user._id, "items.product": productId },
@@ -93,7 +96,7 @@ const updateCart = handleAsync(async (req: Request, res: Response) => {
   });
 });
 
-const removeCart = handleAsync(async (req: Request, res: Response) => {
+const removeCart = handleAsync(async (req: ProtectedRequest, res: Response) => {
   const { productId } = req.body;
   let cart = await CartModel.findOneAndUpdate(
     { user: req.user._id },
