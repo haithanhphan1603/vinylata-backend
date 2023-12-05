@@ -1,8 +1,8 @@
 import { handleAsync } from "../utils/handleAsync";
 import User, { UserModel } from "../models/User";
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import { RoleModel } from "../models/Role";
-import jwt from "jsonwebtoken";
+import jwt, { JwtPayload } from "jsonwebtoken";
 import mongoose from "mongoose";
 import { RoleCode } from "../models/Role";
 
@@ -31,6 +31,34 @@ const sendToken = function (user: User, statusCode: number, res: Response) {
     },
   });
 };
+
+const protect = handleAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    let token;
+    if (
+      req.headers.authorization &&
+      req.headers.authorization.startsWith("Bearer")
+    ) {
+      token = req.headers.authorization.split(" ")[1];
+    } else if (req.cookies.jwt) {
+      token = req.cookies.jwt;
+    }
+    if (!token) {
+      res.status(401).json({
+        status: "Failed",
+        message: "You are not logged in",
+      });
+    }
+    const decoded = jwt.verify(
+      token,
+      process.env.JWT_SECRET as string
+    ) as JwtPayload;
+    const user = await UserModel.findById(decoded.id);
+    req.user = user;
+    req.locals.user = user;
+    next();
+  }
+);
 
 const signUp = handleAsync(async (req: Request, res: Response) => {
   const { email, password, name } = req.body;
@@ -71,5 +99,6 @@ const signIn = handleAsync(async (req: Request, res: Response) => {
 const authController = {
   signUp,
   signIn,
+  protect,
 };
 export default authController;

@@ -131,6 +131,7 @@ const CartController = {
   getCartByUSerId,
   addToCart,
   removeCart,
+  updateCart,
 };
 
 export default CartController;
