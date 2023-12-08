@@ -111,7 +111,7 @@ const removeCart = handleAsync(async (req: ProtectedRequest, res: Response) => {
       },
     });
   }
-  if (cart.items.length === 0) {
+  if (cart && cart.items.length === 0) {
     cart = await CartModel.findOneAndDelete({ user: req.user._id });
     res.status(200).json({
       message: "success",
